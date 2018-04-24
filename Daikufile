@@ -35,6 +35,7 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
     "babel-preset-react": "6.24.1",
     "css-loader": "0.28.11",
     "flow-bin": "0.70.0",
+    "flow-typed": "2.4.0",
     "style-loader": "0.21.0",
     "webpack": "3.11.0",
     "webpack-dev-server": "2.11.2"
@@ -120,6 +121,23 @@ my $INDEX_HTML = << 'INDEX_HTML';
 </html>
 INDEX_HTML
 
+my $FLOW_CONFIG = << 'FLOW_CONFIG';
+[ignore]
+.*/node_modules/.*
+.*/dist/.*
+
+[include]
+
+[libs]
+flow-typed
+
+[lints]
+
+[options]
+
+[strict]
+FLOW_CONFIG
+
 
 sub create_file {
     my ($path, $source) = @_;
@@ -158,7 +176,8 @@ namespace create => sub {
             create_file('./dist/index.html', $INDEX_HTML);
         }
         # flow!
-        sh q(npm run flow init);
+        # sh q(npm run flow init);
+        create_file('.flowconfig', $FLOW_CONFIG);
         # bye!!
         sh q(rm ./Daikufile);
  
