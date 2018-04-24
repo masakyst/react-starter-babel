@@ -1,0 +1,128 @@
+
+# use Template;
+
+our $BABEL_VERSION = '6.26.0';
+our $AWS_SDK_VERSION = '2.223.1';
+
+my $BABELRC = << "BABELRC";
+{
+  "presets": ["import-export"]
+}
+BABELRC
+
+my $PACKAGE_JSON = << "PACKAGE_JSON";
+{
+  "name": "function-name1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "ntl",
+    "watch": "babel -w src -d dist",
+    "build": "babel src -d dist ",
+    "create": "npm run build && claudia create --region ap-northeast-1 --handler dist/index.handler --runtime nodejs8.10",
+    "deploy": "claudia update",
+    "predeploy": "npm run build",
+    "test": "npm run build && lambda-local -l dist/index.js -h handler -e tests/event.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "6.26.0",
+    "babel-core": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "babel-preset-react": "6.24.1",
+    "webpack": "3.11.0"
+  },
+  "dependencies": {
+    "react": "16.3.0",
+    "react-dom": "16.3.0"
+  }
+}
+PACKAGE_JSON
+
+my $ENVRC = << 'ENVRC';
+export PATH=$PATH:`pwd`/node_modules/.bin
+ENVRC
+
+my $INDEX_JS_HANDLER = << 'INDEX_JS_HANDLER';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+function Hello() {
+    return <h1>Hello! reactjs babel!</h1>;
+}
+
+ReactDOM.render(
+    <Hello />, 
+    document.getElementById('root')
+);
+
+
+INDEX_JS_HANDLER
+
+my $WEBPACK_CONFIG_JS = << 'WEBPACK_CONFIG_JS';
+module.exports = {
+
+    entry: './src/index.js',
+
+    output: {
+        filename: 'dist/app.js' 
+    },
+
+    module: {
+        rules: [
+            {
+                loader: 'babel-loader',
+                test: /\.js$/,
+            }
+        ] 
+    }
+};
+WEBPACK_CONFIG_JS
+
+
+sub create_file {
+    my ($path, $source) = @_;
+    open my $fh, '>', $path or die qw/Can't open file: $!/;
+    print $fh $source;
+    close $fh;
+}
+
+namespace create => sub {
+    
+    desc 'create react files';
+    task reactjs => sub {
+        # setup git
+        {
+            sh q(git init);
+            create_file('.gitignore', "/dist\n/node_modules");
+        }
+        # setup nodejs/babel
+        {
+            create_file('.babelrc', $BABELRC);
+            create_file('.npmrc', "save-exact=true");
+            create_file('package.json', $PACKAGE_JSON);
+            sh q(npm install);
+        }
+        # setup direnv
+        {
+            create_file('.envrc', $ENVRC);
+            sh q(direnv allow);
+        }
+        # index.js handler
+        {
+            sh q(mkdir src);
+            create_file('./src/index.js', $INDEX_JS_HANDLER);
+            create_file('./webpack.config.js', $WEBPACK_CONFIG_JS);
+        }
+        # bye!!
+        sh q(rm ./Daikufile);
+ 
+    };
+
+};
