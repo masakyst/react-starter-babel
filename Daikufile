@@ -6,7 +6,7 @@ our $AWS_SDK_VERSION = '2.223.1';
 
 my $BABELRC = << "BABELRC";
 {
-  "presets": ["env", "react"]
+  "presets": ["env", "flow", "react"]
 }
 BABELRC
 
@@ -21,6 +21,7 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
   ],
   "scripts": {
     "start": "webpack-dev-server"
+    "flow": "flow"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +31,11 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
     "babel-core": "6.26.0",
     "babel-loader": "7.1.4",
     "babel-preset-env": "1.6.1",
+    "babel-preset-flow": "6.23.0",
     "babel-preset-react": "6.24.1",
+    "css-loader": "0.28.11",
+    "flow-bin": "0.70.0",
+    "style-loader": "0.21.0",
     "webpack": "3.11.0",
     "webpack-dev-server": "2.11.2"
   },
@@ -84,6 +89,10 @@ module.exports = {
 
     module: {
         rules: [
+            {   
+                test: /\.css$/,
+                loaders: ['style-loader', 'css-loader']
+            },  
             {   
                 loader: 'babel-loader',
                 test: /\.js$/,
@@ -148,6 +157,8 @@ namespace create => sub {
             sh q(mkdir dist);
             create_file('./dist/index.html', $INDEX_HTML);
         }
+        # flow!
+        sh q(npm run flow init);
         # bye!!
         sh q(rm ./Daikufile);
  
