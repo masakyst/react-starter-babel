@@ -12,5 +12,4 @@ Setup
 Hello! 
 
     $ babel --version
-    $ claudia --version
     
