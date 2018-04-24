@@ -6,7 +6,7 @@ our $AWS_SDK_VERSION = '2.223.1';
 
 my $BABELRC = << "BABELRC";
 {
-  "presets": ["import-export"]
+  "presets": ["env", "react"]
 }
 BABELRC
 
@@ -20,13 +20,7 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
     "dist"
   ],
   "scripts": {
-    "start": "ntl",
-    "watch": "babel -w src -d dist",
-    "build": "babel src -d dist ",
-    "create": "npm run build && claudia create --region ap-northeast-1 --handler dist/index.handler --runtime nodejs8.10",
-    "deploy": "claudia update",
-    "predeploy": "npm run build",
-    "test": "npm run build && lambda-local -l dist/index.js -h handler -e tests/event.json"
+    "start": "webpack-dev-server"
   },
   "keywords": [],
   "author": "",
@@ -37,7 +31,8 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
     "babel-loader": "7.1.4",
     "babel-preset-env": "1.6.1",
     "babel-preset-react": "6.24.1",
-    "webpack": "3.11.0"
+    "webpack": "3.11.0",
+    "webpack-dev-server": "2.11.2"
   },
   "dependencies": {
     "react": "16.3.0",
@@ -67,24 +62,54 @@ ReactDOM.render(
 INDEX_JS_HANDLER
 
 my $WEBPACK_CONFIG_JS = << 'WEBPACK_CONFIG_JS';
-module.exports = {
+module.exports = { 
 
-    entry: './src/index.js',
+    entry: {
+        app: './src/index.js' 
+    },  
 
     output: {
-        filename: 'dist/app.js' 
-    },
+        path: __dirname + '/dist',
+        filename: '[name].js'
+
+    },  
+
+    devServer: {
+        contentBase: __dirname + '/dist',
+        port: 5000,
+        //publicPath: 'CDN'
+    },  
+
+    devtool: '#inline-source-map',
 
     module: {
         rules: [
-            {
+            {   
                 loader: 'babel-loader',
                 test: /\.js$/,
-            }
-        ] 
-    }
+                exclude: /node_modules/
+            }   
+        ]   
+    }   
 };
 WEBPACK_CONFIG_JS
+
+
+my $INDEX_HTML = << 'INDEX_HTML';
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1" />
+  <title>React App</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/javascript" src="app.js" charset="utf-8"></script>
+</body>
+</html>
+INDEX_HTML
 
 
 sub create_file {
@@ -120,6 +145,8 @@ namespace create => sub {
             sh q(mkdir src);
             create_file('./src/index.js', $INDEX_JS_HANDLER);
             create_file('./webpack.config.js', $WEBPACK_CONFIG_JS);
+            sh q(mkdir dist);
+            create_file('./dist/index.html', $INDEX_HTML);
         }
         # bye!!
         sh q(rm ./Daikufile);
