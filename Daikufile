@@ -20,7 +20,7 @@ my $PACKAGE_JSON = << "PACKAGE_JSON";
     "dist"
   ],
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
     "flow": "flow"
   },
   "keywords": [],
