@@ -6,7 +6,10 @@ our $AWS_SDK_VERSION = '2.223.1';
 
 my $BABELRC = << "BABELRC";
 {
-  "presets": ["env", "flow", "react"]
+  "presets": [
+    ["env", {"modules": false}],
+    "react"
+  ]
 }
 BABELRC
 
